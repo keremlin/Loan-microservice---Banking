@@ -3,9 +3,11 @@ package com.tosan.loan.services;
 import java.util.List;
 
 import com.tosan.loan.dto.LoanDto;
+import com.tosan.loan.exceptions.DepositNotFoundException;
+import com.tosan.loan.exceptions.NotEnoughBalanceException;
 import com.tosan.loan.model.Loan;
 import com.tosan.loan.model.LoanState;
-import com.tosan.loan.repository.LoanRepository;
+import com.tosan.loan.repository.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,9 @@ public class LoanServiceImpl implements LoanService {
 
     @Autowired
     private LoanRepository repo;
+
+    @Autowired
+    private DepositResources depositRepo;
 
     @Override
     public int calculateInstallments(int amount, int numberOfInstallment, int rate) {
@@ -29,8 +34,10 @@ public class LoanServiceImpl implements LoanService {
 
     @Override
     public Loan createLoan(LoanDto loan) {
-        // if(loan.getDepositNumber()==is not real)
-        //     exception TODO: create a new service in deposit for checking
+
+         if(!depositRepo.isDepositValid(loan.getDepositNumber()))
+            throw new DepositNotFoundException();
+
         Loan newLoan = loan.convert();
         newLoan.setState(LoanState.open);
         newLoan.setAmountOfEachInstallment(
@@ -41,14 +48,34 @@ public class LoanServiceImpl implements LoanService {
 
     @Override
     public List<Loan> listOfLoanForDeposit(String depositNumber) {
-        // TODO check deposit number
+        if (!depositRepo.isDepositValid(depositNumber))
+            throw new DepositNotFoundException();
         return repo.findByDepositNumber(depositNumber);
     }
 
     @Override
     public Loan payInstallment(String depositNumber) {
-        // TODO Auto-generated method stub
-        return null;
+        if (!depositRepo.isDepositValid(depositNumber))
+            throw new DepositNotFoundException();
+        List<Loan> list = repo.findByDepositNumber(depositNumber);
+        Loan item = list.size() > 0 ? list.get(0) : null;
+
+        if (item != null) {
+            if (item.getState() != LoanState.closed) {
+                if (depositRepo.withdrawInstallment(depositNumber, item.getAmountOfEachInstallment())) {
+                    item.setInstallmentNumber(item.getInstallmentNumber() - 1);
+                    if (item.getInstallmentNumber() == 0) {
+                        item.setState(LoanState.closed);
+                    } else {
+                        item.setState(LoanState.Paying);
+                    }
+                    item = repo.save(item);
+                } else {
+                    throw new NotEnoughBalanceException(depositNumber);
+                }
+            }
+        }
+        return item;
     }
 
     @Override

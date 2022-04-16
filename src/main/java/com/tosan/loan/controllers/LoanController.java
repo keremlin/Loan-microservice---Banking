@@ -42,5 +42,10 @@ public class LoanController {
             service.listOfLoanForDeposit(depositNumber)
         );
     }
-    
+    @GetMapping("/{depositNumber}/payInstallment")
+    public ResponseEntity<Loan> payInstallment(@PathVariable String depositNumber){
+        return ResponseEntity.ok().body(
+            service.payInstallment(depositNumber)
+        );
+    }
 }

@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.tosan.loan.model.*;
-import com.tosan.loan.repository.LoanRepository;
+import com.tosan.loan.repository.*;
 import com.tosan.loan.services.LoanServiceImpl;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +27,9 @@ class LoanApplicationTests {
 	@Mock
 	private LoanRepository repo;
 
+	@Mock
+	private DepositResources depositRepo;
+
 	private List<Loan> list;
 
 	@BeforeEach
@@ -39,6 +42,9 @@ class LoanApplicationTests {
 		when(repo.findAll()).thenReturn(list);
 		when(repo.findByDepositNumber(ArgumentMatchers.<String>any()))
 				.thenAnswer(i -> findLoanByDepositNumber(i.getArguments()[0] + ""));
+
+		when(depositRepo.isDepositValid(ArgumentMatchers.<String>any()))
+				.thenAnswer(Q -> true);
 	}
 
 	private List<Loan> findLoanByDepositNumber(String depositNumber) {

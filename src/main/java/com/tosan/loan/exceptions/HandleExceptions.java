@@ -30,19 +30,19 @@ public class HandleExceptions {
         return errors;
     }
 
-    // @ExceptionHandler(NinNotFoundException.class)
-    // @ResponseStatus(HttpStatus.NOT_FOUND)
-    // public String handleNinNotFound(NinNotFoundException ex) {
-    //     log.error(ex.getMessage());
-    //     return ex.getMessage();
-    // }
+    @ExceptionHandler(NotEnoughBalanceException.class)
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    public String handleNotEnoughBalanceException(NotEnoughBalanceException ex) {
+        log.error(ex.getMessage());
+        return ex.getMessage();
+    }
 
-    // @ExceptionHandler(DepositNotFoundException.class)
-    // @ResponseStatus(HttpStatus.NOT_FOUND)
-    // public String handleDepositNotFoundException(DepositNotFoundException ex) {
-    //     log.error(ex.getMessage());
-    //     return ex.getMessage();
-    // }
+    @ExceptionHandler(DepositNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleDepositNotFoundException(DepositNotFoundException ex) {
+        log.error(ex.getMessage());
+        return ex.getMessage();
+    }
 
     // @ExceptionHandler(DepositIsBlockException.class)
     // @ResponseStatus(HttpStatus.UNAUTHORIZED)
